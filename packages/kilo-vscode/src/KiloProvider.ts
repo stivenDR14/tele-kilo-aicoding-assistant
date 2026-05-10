@@ -913,6 +913,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "updateSetting":
           await this.handleUpdateSetting(message.key, message.value)
           break
+        case "updateTelegramSettings":
+          await this.handleUpdateTelegramSettings(message)
+          break
         case "requestBrowserSettings":
           this.sendBrowserSettings()
           break
@@ -2862,6 +2865,23 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     const { section, leaf } = buildSettingPath(key)
     const config = vscode.workspace.getConfiguration(`kilo-code.new${section ? `.${section}` : ""}`)
     await config.update(leaf, value, vscode.ConfigurationTarget.Global)
+  }
+
+  private async handleUpdateTelegramSettings(message: any): Promise<void> {
+    const config = vscode.workspace.getConfiguration("kilocode.telegram")
+    await config.update("remoteMode", message.remoteMode, vscode.ConfigurationTarget.Global)
+    if (message.chatId) {
+      await config.update("allowedChatId", parseInt(message.chatId, 10), vscode.ConfigurationTarget.Global)
+    } else {
+      await config.update("allowedChatId", undefined, vscode.ConfigurationTarget.Global)
+    }
+    
+    // We update secrets using the standard VS Code secret storage API directly here to avoid circular dependencies
+    if (message.token) {
+      await this.extensionContext?.secrets.store("kilocode.telegram.botToken", message.token)
+    } else {
+      await this.extensionContext?.secrets.delete("kilocode.telegram.botToken")
+    }
   }
 
   /**

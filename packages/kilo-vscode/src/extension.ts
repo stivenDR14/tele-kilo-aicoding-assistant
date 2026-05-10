@@ -19,6 +19,9 @@ import { registerCodeActions, registerTerminalActions, KiloCodeActionProvider } 
 import { registerToggleAutoApprove } from "./commands/toggle-auto-approve"
 import { registerHeapSnapshot } from "./commands/heap-snapshot"
 import { RemoteStatusService } from "./services/RemoteStatusService"
+import { TelegramService } from "./services/telegram/TelegramService"
+import { SecretManager } from "./services/telegram/SecretManager"
+import { TelegramStatusBar } from "./services/telegram/TelegramStatusBar"
 import { markWorkspace } from "./util/spotlight"
 
 // Activated via "onStartupFinished" (package.json) so that commands, code actions, keybindings,
@@ -27,6 +30,56 @@ import { markWorkspace } from "./util/spotlight"
 // it starts lazily when a webview connects or when ensureBackendForAutocomplete() triggers it.
 export function activate(context: vscode.ExtensionContext) {
   console.log("Kilo Code extension is now active")
+
+  // --- Telegram Service Initialization ---
+  const secretManager = new SecretManager(context)
+  const telegramService = new TelegramService()
+  const telegramStatusBar = new TelegramStatusBar()
+  context.subscriptions.push(telegramStatusBar)
+
+  const updateTelegramLifecycle = async () => {
+    const config = vscode.workspace.getConfiguration('kilocode.telegram')
+    const remoteMode = config.get<boolean>('remoteMode', false)
+    const chatId = config.get<number>('allowedChatId')
+
+    if (remoteMode && chatId) {
+      const token = await secretManager.getToken()
+      if (token) {
+        try {
+          telegramService.activate(token, [chatId])
+          telegramStatusBar.setConnected('on')
+        } catch (e) {
+          console.error("Failed to activate Telegram:", e)
+          telegramStatusBar.setConnected('error')
+        }
+      } else {
+        telegramStatusBar.setConnected('error')
+      }
+    } else {
+      await telegramService.dispose()
+      telegramStatusBar.setConnected('off')
+    }
+  }
+
+  // Watch for configuration changes
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration('kilocode.telegram')) {
+        updateTelegramLifecycle()
+      }
+    })
+  )
+  // Initial check
+  updateTelegramLifecycle()
+
+  // Mode A: Initialize TelegramService if environment variables are set
+  if (process.env.TG_BOT_TOKEN) {
+    const allowedIds = process.env.TG_ALLOWED_CHAT_IDS
+      ? process.env.TG_ALLOWED_CHAT_IDS.split(',').map(id => parseInt(id.trim(), 10))
+      : []
+    telegramService.activate(process.env.TG_BOT_TOKEN, allowedIds)
+    context.subscriptions.push({ dispose: () => telegramService.dispose() })
+  }
 
   const telemetry = TelemetryProxy.getInstance()
 

@@ -24,6 +24,7 @@ import LanguageTab from "./LanguageTab"
 import AboutKiloCodeTab from "./AboutKiloCodeTab"
 import IndexingTab from "./IndexingTab"
 import { useServer } from "../../context/server"
+import { TelegramTab } from "./TelegramTab"
 
 export interface SettingsProps {
   tab?: string
@@ -204,6 +205,10 @@ const Settings: Component<SettingsProps> = (props) => {
             <Icon name="speech-bubble" />
             <span class="label">{language.t("settings.language.title")}</span>
           </Tabs.Trigger>
+          <Tabs.Trigger value="telegram">
+            <Icon name="code-lines" />
+            <span class="label">Telegram</span>
+          </Tabs.Trigger>
           <Tabs.Trigger value="aboutKiloCode">
             <Icon name="help" />
             <span class="label">{language.t("settings.aboutKiloCode.title")}</span>
@@ -268,6 +273,9 @@ const Settings: Component<SettingsProps> = (props) => {
         <Tabs.Content value="language">
           <h3>{language.t("settings.language.title")}</h3>
           <LanguageTab />
+        </Tabs.Content>
+        <Tabs.Content value="telegram">
+          <TelegramTab />
         </Tabs.Content>
         <Tabs.Content value="aboutKiloCode">
           <h3>{language.t("settings.aboutKiloCode.title")}</h3>

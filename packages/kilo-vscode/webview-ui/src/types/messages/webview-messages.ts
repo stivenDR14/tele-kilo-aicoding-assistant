@@ -352,6 +352,13 @@ export interface UpdateSettingRequest {
   value: unknown
 }
 
+export interface UpdateTelegramSettingsMessage {
+  type: "updateTelegramSettings"
+  token: string
+  chatId: string
+  remoteMode: boolean
+}
+
 export interface RequestTimelineSettingMessage {
   type: "requestTimelineSetting"
 }
@@ -1036,6 +1043,7 @@ export type WebviewMessage =
   | RequestGitChangesContextMessage
   | ChatCompletionAcceptedMessage
   | UpdateSettingRequest
+  | UpdateTelegramSettingsMessage
   | RequestTimelineSettingMessage
   | RequestBrowserSettingsMessage
   | RequestClaudeCompatSettingMessage

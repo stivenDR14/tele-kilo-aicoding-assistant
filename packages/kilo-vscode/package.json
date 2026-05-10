@@ -781,6 +781,19 @@
           "default": false,
           "description": "Load CLAUDE.md instructions and skills from your Claude Code configuration directory into Kilo sessions. Enable this if you want Kilo to use your Claude Code instructions and skills."
         },
+        "kilocode.telegram.remoteMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable remote Telegram integration mode."
+        },
+        "kilocode.telegram.allowedChatId": {
+          "type": "integer",
+          "description": "Allowed Telegram Chat ID for bot interaction."
+        },
+        "kilocode.telegram.miniAppHost": {
+          "type": "string",
+          "description": "URL of the hosted React Mini App."
+        },
         "kilo-code.new.autoApprove.enabled": {
           "type": "boolean",
           "default": false,
