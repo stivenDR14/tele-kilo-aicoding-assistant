@@ -90,52 +90,62 @@ export const registerCoreHandlers = (registry: any, ctx: TelegramHandlerContext)
         sessionId = newSession!.id;
       }
 
-      // Send the prompt and collect streamed response
+      // Snapshot current message count before sending prompt
+      const { data: beforeMessages } = await client.session.messages(
+        { sessionID: sessionId, directory: workspaceDir, limit: 100 },
+      );
+      const beforeCount = (beforeMessages ?? []).length;
+
+      // Send the prompt (fire and forget — agent works asynchronously)
       await client.session.promptAsync({
         sessionID: sessionId,
         directory: workspaceDir,
         parts: [{ type: 'text', text: prompt }],
       });
 
-      // Poll messages for the response
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const { data: messages } = await client.session.messages(
-        { sessionID: sessionId, directory: workspaceDir, limit: 5 },
-        { throwOnError: true },
-      );
+      // Poll every 4s for up to 3 minutes waiting for a new assistant text response
+      const pollIntervalMs = 4000;
+      const maxWaitMs = 3 * 60 * 1000;
+      const deadline = Date.now() + maxWaitMs;
+      let finalText = '';
 
-      let accumulated = '';
-      const lastAssistant = messages?.reverse().find((m: any) => m.info?.role === 'assistant');
-      if (lastAssistant) {
-        const textParts = (lastAssistant.parts ?? [])
+      while (Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+        const { data: current } = await client.session.messages(
+          { sessionID: sessionId, directory: workspaceDir, limit: 100 },
+        );
+        const currentMessages = current ?? [];
+        if (currentMessages.length <= beforeCount) continue;
+
+        // Find the last assistant message added after we sent the prompt
+        const newMessages = currentMessages.slice(beforeCount);
+        const lastAssistant = [...newMessages].reverse().find((m: any) => m.info?.role === 'assistant');
+        if (!lastAssistant) continue;
+
+        const text = (lastAssistant.parts ?? [])
           .filter((p: any) => p.type === 'text')
           .map((p: any) => p.text)
-          .join('\n');
-        accumulated = textParts || '(no text response)';
-      } else {
-        accumulated = '(response pending — try /seeconversation shortly)';
+          .join('\n')
+          .trim();
+        if (!text) continue;
+
+        finalText = text;
+        break;
       }
 
-      const miniAppHost = ctx.miniAppHost();
-      if (accumulated.length > 4096 && miniAppHost) {
-        const { StatePacker } = await import('../StatePacker');
-        const encoded = StatePacker.encode({ type: 'conversation', content: accumulated });
-        await bot.editMessageText('🤖 Response ready', {
-          chat_id: chatId,
-          message_id: messageId,
-          reply_markup: {
-            inline_keyboard: [[{
-              text: '📖 Open response',
-              url: `${miniAppHost}/#/view?data=${encoded}`,
-            }]],
-          },
-        });
-      } else {
-        await bot.editMessageText(accumulated.slice(0, 4096), {
+      if (!finalText) {
+        // Agent still working or timed out — leave the thinking message but add a note
+        await bot.editMessageText('⏳ Agent is still working... use /seeconversation to check progress.', {
           chat_id: chatId,
           message_id: messageId,
         });
+        return;
       }
+
+      await bot.editMessageText(finalText.slice(0, 4096), {
+        chat_id: chatId,
+        message_id: messageId,
+      });
     } catch (e) {
       const err = e instanceof Error ? e.message : String(e);
       await bot.editMessageText(`❌ Error: ${err.slice(0, 200)}`, {

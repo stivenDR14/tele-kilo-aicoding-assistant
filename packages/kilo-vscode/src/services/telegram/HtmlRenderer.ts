@@ -84,7 +84,7 @@ ${linesHtml}
       }
     }
 
-    function renderNode(node: TreeNode, depth: number): string {
+    function renderNode(node: TreeNode, depth: number, parentPath: string): string {
       const entries = Object.entries(node).sort(([a, av], [b, bv]) => {
         const aIsDir = av !== null ? 0 : 1;
         const bIsDir = bv !== null ? 0 : 1;
@@ -94,20 +94,28 @@ ${linesHtml}
 
       let html = '';
       for (const [name, children] of entries) {
+        const fullPath = parentPath ? `${parentPath}/${name}` : name;
         if (children !== null) {
           const open = depth < 1 ? ' open' : '';
           html += `<details${open} style="margin-left:${depth * 16}px;">`;
           html += `<summary style="cursor:pointer;padding:2px 0;user-select:none;">📁 ${name}</summary>`;
-          html += renderNode(children, depth + 1);
+          html += renderNode(children, depth + 1, fullPath);
           html += `</details>`;
         } else {
-          html += `<div style="margin-left:${depth * 16}px;padding:2px 0;">📄 ${name}</div>`;
+          const escaped = fullPath.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          html += `<details style="margin-left:${depth * 16}px;padding:2px 0;">`;
+          html += `<summary style="cursor:pointer;list-style:none;padding:2px 0;">📄 ${name}</summary>`;
+          html += `<div style="margin:4px 0 6px ${depth * 16 + 16}px;background:#2d2d2d;border:1px solid #444;border-radius:6px;padding:8px 12px;">`;
+          html += `<div style="font-size:11px;color:#888;margin-bottom:4px;">Repository path</div>`;
+          html += `<code style="color:#9cdcfe;word-break:break-all;font-size:12px;">${escaped}</code>`;
+          html += `</div>`;
+          html += `</details>`;
         }
       }
       return html;
     }
 
-    const treeHtml = renderNode(root, 0);
+    const treeHtml = renderNode(root, 0, '');
 
     return `<!DOCTYPE html>
 <html>

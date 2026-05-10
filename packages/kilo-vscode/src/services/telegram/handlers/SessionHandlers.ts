@@ -2,9 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { exec } from 'child_process';
 import util from 'util';
 import * as fs from 'fs';
-import * as vscode from 'vscode';
 import { createTwoFilesPatch } from 'diff';
-import { StatePacker } from '../StatePacker';
 import { HtmlRenderer } from '../HtmlRenderer';
 import type { TelegramHandlerContext } from '../TelegramService';
 import type { TelegramService } from '../TelegramService';
@@ -40,23 +38,10 @@ export const registerSessionHandlers = (registry: any, ctx: TelegramHandlerConte
           : '',
       }));
 
-      const miniAppHost = ctx.miniAppHost();
-      if (miniAppHost) {
-        const encoded = StatePacker.encode({ type: 'conversation', messages: history });
-        await bot.sendMessage(chatId, '💬 Conversation ready', {
-          reply_markup: {
-            inline_keyboard: [[{
-              text: '📖 Open conversation',
-              url: `${miniAppHost}/#/view?data=${encoded}`,
-            }]],
-          },
-        });
-      } else {
-        const html = HtmlRenderer.renderConversation(history);
-        const tmpPath = require('os').tmpdir() + '/conversation.html';
-        fs.writeFileSync(tmpPath, html, 'utf8');
-        await bot.sendDocument(chatId, tmpPath, { caption: '💬 Conversation' });
-      }
+      const html = HtmlRenderer.renderConversation(history);
+      const tmpPath = require('os').tmpdir() + '/conversation.html';
+      fs.writeFileSync(tmpPath, html, 'utf8');
+      await bot.sendDocument(chatId, tmpPath, { caption: '💬 Conversation' });
     } catch (e) {
       const err = e instanceof Error ? e.message : String(e);
       await bot.sendMessage(chatId, `❌ Error: ${err.slice(0, 200)}`);
@@ -140,25 +125,10 @@ export const registerSessionHandlers = (registry: any, ctx: TelegramHandlerConte
         '', '', { context: 3 },
       );
 
-      const miniAppHost = ctx.miniAppHost();
-      if (miniAppHost) {
-        const encoded = StatePacker.encode({ type: 'diff', diff: unifiedDiff });
-        await bot.editMessageText(`🔍 Diff ready: ${filePath}`, {
-          chat_id: chatId,
-          message_id: sentMsg.message_id,
-          reply_markup: {
-            inline_keyboard: [[{
-              text: '🔍 View diff',
-              url: `${miniAppHost}/#/view?data=${encoded}`,
-            }]],
-          },
-        });
-      } else {
-        const html = HtmlRenderer.renderDiff(filePath, unifiedDiff);
-        const tmpPath = require('os').tmpdir() + '/diff.html';
-        fs.writeFileSync(tmpPath, html, 'utf8');
-        await bot.sendDocument(chatId, tmpPath, { caption: `Diff: ${filePath}` });
-      }
+      const html = HtmlRenderer.renderDiff(filePath, unifiedDiff);
+      const tmpPath = require('os').tmpdir() + '/diff.html';
+      fs.writeFileSync(tmpPath, html, 'utf8');
+      await bot.sendDocument(chatId, tmpPath, { caption: `Diff: ${filePath}` });
     } catch (e) {
       const err = e instanceof Error ? e.message : String(e);
       await bot.editMessageText(`❌ Error: ${err.slice(0, 200)}`, {
@@ -168,41 +138,4 @@ export const registerSessionHandlers = (registry: any, ctx: TelegramHandlerConte
     }
   });
 
-  registry.register('model', async (bot: TelegramBot, msg: TelegramBot.Message) => {
-    const chatId = msg.chat.id;
-    try {
-      const config = vscode.workspace.getConfiguration('kilo-code.new');
-      const providerId = config.get<string>('apiProvider', 'unknown');
-      const modelId = config.get<string>('apiModelId', 'unknown');
-      await bot.sendMessage(chatId, `🧠 Active model:\nProvider: *${providerId}*\nModel: *${modelId}*`, {
-        parse_mode: 'Markdown',
-      });
-    } catch (e) {
-      await bot.sendMessage(chatId, '❌ Could not read current model configuration.');
-    }
-  });
-
-  registry.register('status', async (bot: TelegramBot, msg: TelegramBot.Message) => {
-    const chatId = msg.chat.id;
-    try {
-      const client = ctx.connectionService.getClient();
-      const workspaceDir = ctx.workspaceRoot();
-      const result = await client.session.status({ directory: workspaceDir });
-      const statuses: Record<string, any> = result.data ?? {};
-      const entries = Object.entries(statuses);
-      if (entries.length === 0) {
-        await bot.sendMessage(chatId, '📊 No active sessions.');
-        return;
-      }
-      const lines = entries.map(([id, info]: [string, any]) => {
-        const shortId = id.slice(0, 8);
-        return `• \`${shortId}\` — ${info.type ?? 'unknown'}`;
-      });
-      await bot.sendMessage(chatId, `📊 Session status:\n${lines.join('\n')}`, {
-        parse_mode: 'Markdown',
-      });
-    } catch (e) {
-      await bot.sendMessage(chatId, '📊 Status unavailable (backend not connected).');
-    }
-  });
 };

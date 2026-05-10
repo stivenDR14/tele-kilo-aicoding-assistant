@@ -101,9 +101,6 @@ export function activate(context: vscode.ExtensionContext) {
   // Wire Telegram handler context now that connectionService is available
   telegramService.setContext({
     connectionService,
-    miniAppHost: () =>
-      vscode.workspace.getConfiguration('kilocode.telegram').get<string>('miniAppHost', '') ||
-      process.env.MINIAPP_HOST || '',
     workspaceRoot: () =>
       vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
     onEvent: (listener) => connectionService.onEvent(listener),

@@ -1,5 +1,4 @@
 import TelegramBot from 'node-telegram-bot-api';
-import * as vscode from 'vscode';
 import { CommandRegistry } from './handlers/CommandRegistry';
 import { PendingApprovalManager } from './PendingApprovalManager';
 import { registerCoreHandlers } from './handlers/CoreHandlers';
@@ -9,21 +8,16 @@ import { registerRemoteHandlers } from './handlers/RemoteHandlers';
 import type { KiloConnectionService } from '../cli-backend/connection-service';
 
 const MENU_COMMANDS = [
-  { cmd: 'gitstatus',        label: '📁 Git Status',          group: 'Core' },
-  { cmd: 'chat',             label: '💬 Chat',                group: 'Core' },
-  { cmd: 'seeconversation',  label: '📖 See Conversation',    group: 'Session' },
-  { cmd: 'changes',          label: '🔍 Changes',             group: 'Session' },
-  { cmd: 'model',            label: '🧠 Model',               group: 'Session' },
-  { cmd: 'status',           label: '📊 Status',              group: 'Session' },
-  { cmd: 'listcontextfiles', label: '📂 Context Files',       group: 'Workspace' },
-  { cmd: 'searchfiles',      label: '🔎 Search Files',        group: 'Workspace' },
-  { cmd: 'listfiletree',     label: '🌲 File Tree',           group: 'Workspace' },
-  { cmd: 'command',          label: '🖥️ Run Command',         group: 'Remote' },
+  { cmd: 'gitstatus',       label: '📁 Git Status',       group: 'Core' },
+  { cmd: 'chat',            label: '💬 Chat',             group: 'Core' },
+  { cmd: 'seeconversation', label: '📖 See Conversation', group: 'Session' },
+  { cmd: 'changes',         label: '🔍 Changes',          group: 'Session' },
+  { cmd: 'listfiletree',    label: '🌲 File Tree',        group: 'Workspace' },
+  { cmd: 'command',         label: '🖥️ Run Command',      group: 'Remote' },
 ];
 
 export interface TelegramHandlerContext {
   connectionService: KiloConnectionService;
-  miniAppHost: () => string;
   workspaceRoot: () => string;
   onEvent: (listener: (event: any) => void) => () => void;
 }
@@ -239,16 +233,6 @@ export class TelegramService {
 
     if (this.ctx) {
       this.startPolling();
-    }
-
-    // Pin menu button if MINIAPP_HOST is configured
-    const miniAppHost = vscode.workspace.getConfiguration('kilocode.telegram').get<string>('miniAppHost', '')
-      || process.env.MINIAPP_HOST || '';
-    if (miniAppHost && allowedChatIds[0]) {
-      this.bot.setChatMenuButton({
-        chat_id: allowedChatIds[0],
-        menu_button: { type: 'web_app', text: '📋 Menu', web_app: { url: `${miniAppHost}/#/menu` } },
-      }).catch(() => { /* non-fatal */ });
     }
 
     this.bot.on('message', (msg) => {
