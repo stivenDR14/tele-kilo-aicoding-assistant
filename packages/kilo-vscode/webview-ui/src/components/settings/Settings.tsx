@@ -206,7 +206,7 @@ const Settings: Component<SettingsProps> = (props) => {
             <span class="label">{language.t("settings.language.title")}</span>
           </Tabs.Trigger>
           <Tabs.Trigger value="telegram">
-            <Icon name="code-lines" />
+            <Icon name="share" />
             <span class="label">Telegram</span>
           </Tabs.Trigger>
           <Tabs.Trigger value="aboutKiloCode">

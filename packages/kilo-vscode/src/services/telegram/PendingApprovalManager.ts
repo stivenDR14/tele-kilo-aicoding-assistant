@@ -11,22 +11,35 @@ export class PendingApprovalManager {
     this.approvals.set(id, { action, ttlTimer, resolveFn });
   }
 
-  approve(id: string) {
+  approve(id: string): boolean {
     const entry = this.approvals.get(id);
     if (entry) {
       clearTimeout(entry.ttlTimer);
       entry.resolveFn(true);
       this.approvals.delete(id);
+      return true;
     }
+    return false;
   }
 
-  reject(id: string) {
+  reject(id: string): boolean {
     const entry = this.approvals.get(id);
     if (entry) {
       clearTimeout(entry.ttlTimer);
       entry.resolveFn(false);
       this.approvals.delete(id);
+      return true;
     }
+    return false;
+  }
+
+  /** Returns the first pending approval id, if any. Used by explicit /approve and /reject commands. */
+  getFirstId(): string | undefined {
+    return this.approvals.keys().next().value;
+  }
+
+  has(id: string): boolean {
+    return this.approvals.has(id);
   }
 
   dispose() {

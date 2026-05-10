@@ -787,7 +787,7 @@
           "description": "Enable remote Telegram integration mode."
         },
         "kilocode.telegram.allowedChatId": {
-          "type": "integer",
+          "type": "string",
           "description": "Allowed Telegram Chat ID for bot interaction."
         },
         "kilocode.telegram.miniAppHost": {

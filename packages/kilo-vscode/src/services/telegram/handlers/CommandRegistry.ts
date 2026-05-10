@@ -15,7 +15,13 @@ export class CommandRegistry {
     if (handler) {
       await handler(bot, msg, args);
     } else {
-      await bot.sendMessage(msg.chat.id, `Unknown command: /${command}`);
+      // Fallback: show help menu for unknown commands
+      const helpHandler = this.handlers.get('help');
+      if (helpHandler) {
+        await helpHandler(bot, msg, []);
+      } else {
+        await bot.sendMessage(msg.chat.id, `Unknown command: /${command}`);
+      }
     }
   }
 

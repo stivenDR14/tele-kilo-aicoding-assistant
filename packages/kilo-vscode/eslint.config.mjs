@@ -64,6 +64,10 @@ export default [
     rules: { complexity: ["error", 45] },
   },
   {
+    files: ["src/services/telegram/TelegramService.ts"],
+    rules: { complexity: ["error", 43] },
+  },
+  {
     files: ["webview-ui/src/components/migration/MigrationWizard.tsx"],
     rules: { complexity: ["error", 37] },
   },

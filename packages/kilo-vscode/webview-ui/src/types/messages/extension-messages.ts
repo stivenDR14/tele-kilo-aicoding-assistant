@@ -394,6 +394,13 @@ export interface BrowserSettingsLoadedMessage {
   settings: BrowserSettings
 }
 
+export interface TelegramSettingsLoadedMessage {
+  type: "telegramSettingsLoaded"
+  token: string
+  chatId: string
+  remoteMode: boolean
+}
+
 export interface ClaudeCompatSettingLoadedMessage {
   type: "claudeCompatSettingLoaded"
   enabled: boolean
@@ -868,6 +875,7 @@ export type ExtensionMessage =
   | SuggestionResolvedMessage
   | SuggestionErrorMessage
   | BrowserSettingsLoadedMessage
+  | TelegramSettingsLoadedMessage
   | ClaudeCompatSettingLoadedMessage
   | ConfigLoadedMessage
   | ConfigUpdatedMessage

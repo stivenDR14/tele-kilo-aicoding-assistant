@@ -916,6 +916,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         case "updateTelegramSettings":
           await this.handleUpdateTelegramSettings(message)
           break
+        case "requestTelegramSettings":
+          await this.sendTelegramSettings()
+          break
         case "requestBrowserSettings":
           this.sendBrowserSettings()
           break
@@ -2868,20 +2871,35 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
   }
 
   private async handleUpdateTelegramSettings(message: any): Promise<void> {
-    const config = vscode.workspace.getConfiguration("kilocode.telegram")
-    await config.update("remoteMode", message.remoteMode, vscode.ConfigurationTarget.Global)
-    if (message.chatId) {
-      await config.update("allowedChatId", parseInt(message.chatId, 10), vscode.ConfigurationTarget.Global)
-    } else {
-      await config.update("allowedChatId", undefined, vscode.ConfigurationTarget.Global)
-    }
-    
-    // We update secrets using the standard VS Code secret storage API directly here to avoid circular dependencies
+    // Store the secret first so it is available when onDidChangeConfiguration fires
     if (message.token) {
       await this.extensionContext?.secrets.store("kilocode.telegram.botToken", message.token)
     } else {
       await this.extensionContext?.secrets.delete("kilocode.telegram.botToken")
     }
+
+    const config = vscode.workspace.getConfiguration("kilocode.telegram")
+    // Store chatId as a string so the config read in extension.ts is consistent
+    if (message.chatId) {
+      await config.update("allowedChatId", message.chatId, vscode.ConfigurationTarget.Global)
+    } else {
+      await config.update("allowedChatId", undefined, vscode.ConfigurationTarget.Global)
+    }
+    // remoteMode last — its change fires onDidChangeConfiguration which triggers activate()
+    await config.update("remoteMode", message.remoteMode, vscode.ConfigurationTarget.Global)
+  }
+
+  private async sendTelegramSettings(): Promise<void> {
+    const config = vscode.workspace.getConfiguration("kilocode.telegram")
+    const remoteMode = config.get<boolean>("remoteMode", false)
+    const chatId = config.get<string>("allowedChatId", "")
+    const token = (await this.extensionContext?.secrets.get("kilocode.telegram.botToken")) ?? ""
+    this.postMessage({
+      type: "telegramSettingsLoaded",
+      token,
+      chatId: chatId ? String(chatId) : "",
+      remoteMode,
+    })
   }
 
   /**

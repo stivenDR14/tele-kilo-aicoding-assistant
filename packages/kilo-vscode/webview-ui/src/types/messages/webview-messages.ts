@@ -359,6 +359,10 @@ export interface UpdateTelegramSettingsMessage {
   remoteMode: boolean
 }
 
+export interface RequestTelegramSettingsMessage {
+  type: "requestTelegramSettings"
+}
+
 export interface RequestTimelineSettingMessage {
   type: "requestTimelineSetting"
 }
@@ -1044,6 +1048,7 @@ export type WebviewMessage =
   | ChatCompletionAcceptedMessage
   | UpdateSettingRequest
   | UpdateTelegramSettingsMessage
+  | RequestTelegramSettingsMessage
   | RequestTimelineSettingMessage
   | RequestBrowserSettingsMessage
   | RequestClaudeCompatSettingMessage

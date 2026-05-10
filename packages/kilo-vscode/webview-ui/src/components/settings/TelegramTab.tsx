@@ -1,4 +1,4 @@
-import { Component, createSignal } from "solid-js"
+import { Component, createSignal, onCleanup, onMount } from "solid-js"
 import { Switch } from "@kilocode/kilo-ui/switch"
 import { TextField } from "@kilocode/kilo-ui/text-field"
 import { Card } from "@kilocode/kilo-ui/card"
@@ -6,11 +6,25 @@ import { useVSCode } from "../../context/vscode"
 import SettingsRow from "./SettingsRow"
 
 export const TelegramTab: Component = () => {
-  const { postMessage } = useVSCode()
+  const { postMessage, onMessage } = useVSCode()
 
   const [token, setToken] = createSignal("")
   const [chatId, setChatId] = createSignal("")
   const [remoteMode, setRemoteMode] = createSignal(false)
+
+  // Hydrate from saved state on mount
+  onMount(() => {
+    postMessage({ type: "requestTelegramSettings" })
+  })
+
+  const unsubscribe = onMessage((msg) => {
+    if (msg.type === "telegramSettingsLoaded") {
+      setToken(msg.token)
+      setChatId(msg.chatId)
+      setRemoteMode(msg.remoteMode)
+    }
+  })
+  onCleanup(unsubscribe)
 
   const updateSettings = () => {
     postMessage({
@@ -23,7 +37,6 @@ export const TelegramTab: Component = () => {
 
   return (
     <div style={{ display: "flex", "flex-direction": "column", gap: "16px" }}>
-      {/* Info text matching other tabs */}
       <div
         style={{
           background: "var(--vscode-textBlockQuote-background)",
@@ -40,7 +53,7 @@ export const TelegramTab: Component = () => {
             "line-height": "1.5",
           }}
         >
-          Configure Telegram integration to interact with your workspace remotely. 
+          Configure Telegram integration to interact with your workspace remotely.
           Your bot token is encrypted and securely stored using the VS Code Secrets API.
         </p>
       </div>

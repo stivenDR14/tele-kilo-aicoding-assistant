@@ -40,11 +40,13 @@ export function activate(context: vscode.ExtensionContext) {
   const updateTelegramLifecycle = async () => {
     const config = vscode.workspace.getConfiguration('kilocode.telegram')
     const remoteMode = config.get<boolean>('remoteMode', false)
-    const chatId = config.get<number>('allowedChatId')
+    // chatId stored as string; parse to number only when activating
+    const rawChatId = config.get<string | number>('allowedChatId')
+    const chatId = rawChatId !== undefined && rawChatId !== '' ? Number(rawChatId) : undefined
 
-    if (remoteMode && chatId) {
+    if (remoteMode) {
       const token = await secretManager.getToken()
-      if (token) {
+      if (token && chatId && !isNaN(chatId)) {
         try {
           telegramService.activate(token, [chatId])
           telegramStatusBar.setConnected('on')
@@ -53,10 +55,17 @@ export function activate(context: vscode.ExtensionContext) {
           telegramStatusBar.setConnected('error')
         }
       } else {
+        // remoteMode is on but credentials are incomplete — surface the error
         telegramStatusBar.setConnected('error')
+        vscode.window.showWarningMessage(
+          'Kilo Code Telegram: Remote Mode is ON but bot token or chat ID is missing. Please check the Telegram settings.'
+        )
       }
     } else {
-      await telegramService.dispose()
+      // Don't dispose when Mode A (.env) is active — env-based bot manages its own lifecycle
+      if (!process.env.TG_BOT_TOKEN) {
+        await telegramService.dispose()
+      }
       telegramStatusBar.setConnected('off')
     }
   }
@@ -69,10 +78,9 @@ export function activate(context: vscode.ExtensionContext) {
       }
     })
   )
-  // Initial check
-  updateTelegramLifecycle()
 
-  // Mode A: Initialize TelegramService if environment variables are set
+  // Mode A: Initialize TelegramService if environment variables are set (must run before
+  // updateTelegramLifecycle so the async dispose() inside it cannot race with activate()).
   if (process.env.TG_BOT_TOKEN) {
     const allowedIds = process.env.TG_ALLOWED_CHAT_IDS
       ? process.env.TG_ALLOWED_CHAT_IDS.split(',').map(id => parseInt(id.trim(), 10))
@@ -81,10 +89,25 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push({ dispose: () => telegramService.dispose() })
   }
 
+  // Initial check — runs after Mode A activate() so the async dispose() path cannot
+  // clobber an already-running bot (updateTelegramLifecycle's activate() guard returns early).
+  updateTelegramLifecycle()
+
   const telemetry = TelemetryProxy.getInstance()
 
   // Create shared connection service (one server for all webviews)
   const connectionService = new KiloConnectionService(context)
+
+  // Wire Telegram handler context now that connectionService is available
+  telegramService.setContext({
+    connectionService,
+    miniAppHost: () =>
+      vscode.workspace.getConfiguration('kilocode.telegram').get<string>('miniAppHost', '') ||
+      process.env.MINIAPP_HOST || '',
+    workspaceRoot: () =>
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
+    onEvent: (listener) => connectionService.onEvent(listener),
+  })
 
   // Create browser automation service (manages Playwright MCP registration)
   const browserAutomationService = new BrowserAutomationService(connectionService)
