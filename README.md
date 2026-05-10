@@ -1,39 +1,36 @@
+# 🏆 Kilo Code: Agentic Engineering on AMD (Hackathon Edition)
+
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=kilocode.Kilo-Code"><img src="https://raster.shields.io/badge/VS_Code_Marketplace-007ACC?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace" height="20"></a>
   <a href="https://x.com/kilocode"><img src="https://raster.shields.io/badge/kilocode-000000?style=flat&logo=x&logoColor=white" alt="X (Twitter)" height="20"></a>
-  <a href="https://blog.kilo.ai"><img src="https://raster.shields.io/badge/Blog-555?style=flat&logo=substack&logoColor=white" alt="Substack Blog" height="20"></a>
-  <a href="https://kilo.ai/discord"><img src="https://raster.shields.io/badge/Join%20Discord-5865F2?style=flat&logo=discord&logoColor=white" alt="Discord" height="20"></a>
-  <a href="https://www.reddit.com/r/kilocode/"><img src="https://raster.shields.io/badge/Join%20r%2Fkilocode-D84315?style=flat&logo=reddit&logoColor=white" alt="Reddit" height="20"></a>
 </p>
 
 <p align="center">
  <img width="250" alt="kilo-code-logo" src="https://github.com/user-attachments/assets/bdb0c174-b9fd-40ad-a47b-f3aab9b54e8d" />
 </p>
 
-> Kilo is the all-in-one agentic engineering platform. Build, ship, and iterate faster with the most popular open source coding agent.
+> **Kilo Code** empowers developers with remote agentic workflows, using AMD MI300X-powered Qwen3.6 inference for high-performance coding. Manage agents from Telegram, with full local LLM support via Ollama for privacy and efficiency in your development loop.
 
-- ✨ Generate code from natural language
-- ✅ Checks its own work
-- 🧪 Run terminal commands
-- 🌐 Automate the browser
-- ⚡ Inline autocomplete suggestions
-- 🤖 Latest AI models
-- 🎁 API keys optional
+---
 
-## Quick Links
+## 🚀 AMD Hackathon Submission
 
-- [VS Code Marketplace](https://kilo.ai/vscode-marketplace?utm_source=Readme) (download)
-- Install CLI: `npm install -g @kilocode/cli`
-- [Official Kilo.ai Home page](https://kilo.ai) (learn more)
+- **Track:** [AI Agents & Agentic Workflows](https://lablab.ai/ai-hackathons/amd-developer)
+- **Primary Tech:** AMD Developer Cloud (MI300X GPUs), ROCm, Qwen3.6.
+- **Key Innovation:** Remote Agentic Orchestration via Telegram.
 
-## Key Features
+### Why Kilo Code on AMD?
+Agentic workflows require rapid, iterative reasoning. By leveraging **AMD's MI300X GPUs** and the **Qwen3.6** model, Kilo Code achieves superior coding performance and low-latency inference. Whether using the AMD Developer Cloud or local LLM execution via **Ollama**, Kilo ensures high efficiency, privacy, and full control over your development stack.
 
-- **Code Generation:** Kilo can generate code using natural language.
-- **Inline Autocomplete:** Get intelligent code completions as you type, powered by AI.
-- **Task Automation:** Kilo can automate repetitive coding tasks to save time.
-- **Automated Refactoring:** Kilo can refactor and improve existing code efficiently.
-- **MCP Server Marketplace**: Kilo can easily find, and use MCP servers to extend the agent capabilities.
-- **Multi Mode**: Plan with Architect, Code with Coder, and Debug with Debugger, and make your own custom modes.
+---
+
+## ✨ Key Features
+
+- **🤖 Remote Agentic Management:** Use our Telegram Bot to approve shell commands, answer agent questions, and trigger new tasks from your phone.
+- **✨ High-Performance Inference:** Powered by Qwen3.6 on AMD MI300X for world-class reasoning and tool-use performance.
+- **🛡️ Local LLM Support:** Fully compatible with Ollama, enabling private local development on AMD hardware.
+- **✅ Self-Checking Agents:** Kilo checks its own work, runs tests, and fixes failures autonomously.
+- **📊 Rich Visualization:** View repository structures and code diffs directly in Telegram.
 
 ## Get Started in Visual Studio Code
 
@@ -97,6 +94,15 @@ kilo run --auto "run tests and fix any failures"
 
 **Important:** The `--auto` flag disables all permission prompts and allows the agent to execute any action without confirmation. Only use this in trusted environments like CI/CD pipelines.
 
+## Security Considerations
+
+The Telegram Remote Management Interface provides external access to your development environment. Please observe these precautions:
+
+- **🔐 Bot Token Protection:** Never share or commit your Telegram Bot Token. Kilo Code uses the VS Code `SecretStorage` API to keep it secure.
+- **🆔 Chat ID Whitelisting:** Ensure `allowedChatId` is set only to your personal Telegram User ID to prevent unauthorized remote access.
+- **⚠️ Permission Awareness:** Even with remote access, Kilo Code requires your explicit permission before executing sensitive tools. Review all requests carefully before approving.
+- **🌐 Network Security:** Ensure your workstation is on a secure, private network, as the bot communicates directly with the Telegram API.
+
 ## Contributing
 
 We welcome contributions from developers, writers, and enthusiasts!
@@ -113,6 +119,8 @@ Our community is built on respect, inclusivity, and collaboration. Please review
 This project is licensed under the MIT License.
 You’re free to use, modify, and distribute this code, including for commercial purposes as long as you include proper attribution and license notices. See [License](/LICENSE).
 
-### Where did Kilo CLI come from?
+### Hackathon Attribution
+This repository is a fork of the original **Kilo Code** project, customized specifically for the **AMD Developer Hackathon 2026**. All modifications related to the Telegram Remote Management Interface and AMD Developer Cloud integration are open source under the same MIT License.
 
+### Where did Kilo CLI come from?
 Kilo CLI is a fork of [OpenCode](https://github.com/anomalyco/opencode), enhanced to work within the Kilo agentic engineering platform.
