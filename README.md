@@ -18,6 +18,7 @@
 - **Track:** [AI Agents & Agentic Workflows](https://lablab.ai/ai-hackathons/amd-developer)
 - **Primary Tech:** AMD Developer Cloud (MI300X GPUs), ROCm, Qwen3.6.
 - **Key Innovation:** Remote Agentic Orchestration via Telegram.
+- **Submission:** [View on LabLab.ai](https://lablab.ai/ai-hackathons/amd-developer/tele-delegator/remote-ai-coding-assist-vs-code)
 
 ### Why Kilo Code on AMD?
 Agentic workflows require rapid, iterative reasoning. By leveraging **AMD's MI300X GPUs** and the **Qwen3.6** model, Kilo Code achieves superior coding performance and low-latency inference. Whether using the AMD Developer Cloud or local LLM execution via **Ollama**, Kilo ensures high efficiency, privacy, and full control over your development stack.
@@ -38,7 +39,21 @@ Agentic workflows require rapid, iterative reasoning. By leveraging **AMD's MI30
 2. Create your account to access 500+ cutting-edge AI models including Gemini 3.1 Pro, Claude 4.6 Sonnet & Opus, and GPT-5.4 – with transparent pricing that matches provider rates exactly.
 3. Start coding with AI that adapts to your workflow. Watch our quick-start guide to see Kilo in action:
 
-<a href="https://youtu.be/pqGfYXgrhig"><img src="https://img.youtube.com/vi/pqGfYXgrhig/maxresdefault.jpg" alt="Watch the video" width="640" height="360"></a>
+<video src="./demo-compressed.mp4" controls width="640"></video>
+
+### Telegram Setup Instructions (Development)
+
+1. Run `bun run extension` to launch the extension development host.
+2. Open the **Kilo Code** Settings window and navigate to the **Telegram** tab.
+
+   ![Telegram Section Setup](telegram-section.png)
+
+3. Obtain a Bot Token from [@BotFather](https://t.me/botfather) on Telegram and enter it.
+4. Get your Chat ID by messaging your bot and visiting `https://api.telegram.org/bot<telegram_bot_token>/getUpdates` in your browser. Enter this ID.
+5. Toggle the **Remote Mode** switch to enable the integration.
+6. Clear any old sessions and start a fresh one from the chat (currently, it's best to maintain a single active session for remote management).
+
+   ![Telegram Bot Interface](demo-image.png)
 
 ## Get Started with the CLI
 
